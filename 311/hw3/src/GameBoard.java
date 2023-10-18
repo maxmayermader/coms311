@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.Scanner;
 
 public class GameBoard {
@@ -22,6 +23,9 @@ public class GameBoard {
      */
     int[] grid;
     ArrayList<Vehicle> vehicles;
+
+    //que used for bfs search
+    Deque<int[]> que;
     /**
      * Game board constructor
      */
@@ -38,8 +42,6 @@ public class GameBoard {
         int numCars = scnr.nextInt();
         scnr.nextLine();
         for(int i=0; i<numCars; i++){
-//            vehicles.add(new Vehicle(i, scnr.nextInt(), scnr.nextInt()));
-//
             String line = scnr.nextLine();
             String[] nums = line.split(" ");
             int begin = Integer.valueOf(nums[0])-1;
@@ -54,19 +56,8 @@ public class GameBoard {
                 }
             }
 
-//            int begin = int(line);
-//            while (j<n)
-//        for(int i=0; i<numCars; i++){
-//            vehicles.add(new Vehicle(i, scnr.nextInt(), scnr.nextInt()));
-//        }
-//            int begin = scnr.nextInt();
-//            int end = scnr.nextInt();
-//            if (scnr.hasNextInt()){
-//                end = scnr.nextInt();
-//            }
-//            vehicles.add(new Vehicle(i,begin, end));
-
         }
+        //testing: TODO
         System.out.println(vehicles.toString());
         System.out.println(printGrid());
     }
@@ -88,14 +79,37 @@ public class GameBoard {
      * @return the number of shortest paths
      */
     public int getNumOfPaths(){
+        //TODO
+        //BFS();
         return -1;
     }
+
+    //TODO
+    private void BFS(int[] startGrid) {
+    }
+
+    private ArrayList<int[]> getNextMoves(int[] startGrid){
+        ArrayList<int[]> grids = new ArrayList<>();
+        //go through all vehicles to see which ones can move
+        for (int i=0; i<vehicles.size(); i++){
+            Vehicle currVehicle = vehicles.get(0);
+            if (currVehicle.direc == 0){
+                //if (currVehicle.canMoveRight)
+            } else {
+
+            }
+        }
+
+        return null;
+    }
+
 
 
     public String printGrid(){
         String printed = "";
         for (int i=0; i<36; i++){
-            printed += grid[i]+", ";
+            printed += grid[i] != -1 ? grid[i]+", " : "_, ";
+                    //grid[i]+", ";
             if ((i+1)%6 == 0)
                 printed+="\n";
         }
@@ -126,6 +140,8 @@ public class GameBoard {
         int begin;
         //end index
         int end;
+        int row;
+        int col;
 
         /**
          * Constructor for vehicle
@@ -141,9 +157,13 @@ public class GameBoard {
             if (end-begin < 6){
                 direc = 0;
                 length = end-begin+1;
+                row = (int) Math.floor(end/6.0);
             } else {
+
                 direc = 1;
                 length = (end-begin)/6+1;
+                col = begin%6;
+
             }
         }
 
@@ -174,5 +194,20 @@ public class GameBoard {
         public void setEnd(int end) {
             this.end = end;
         }
+
+//        public boolean canMoveRight(){
+//            if (this.direc == 0){
+//                if (this.end+1 != ())
+//            }
+//        }
+//         public boolean canMoveLeft(){
+//
+//         }
+//         public boolean canMoveUp(){
+//
+//         }
+//         public boolean canMoveDown(){
+//
+//         }
     }
 }
