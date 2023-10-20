@@ -12,12 +12,5 @@ public class Main {
 //        for (int i=0; i<path.size(); i++)
 //            System.out.println(path.get(i).id + " " + path.get(i).direction);
 //        System.out.println(gb.getNumOfPaths());
-
-//        File file = new File("boards/1.txt");
-//        Scanner scnr = new Scanner(file);
-//
-//        int[][] brd = new int[21][21]
-//        int numCars = scnr.nextInt();
-//        for(int i )
     }
 }
