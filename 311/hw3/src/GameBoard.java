@@ -22,17 +22,18 @@ public class GameBoard {
 //    int[] grid;
 //    ArrayList<Vehicle> vehicles;
     GameState firstGameState;
-    HashMap<HashKey, GameState> hashMap;
+    HashMap<HashKey, GameState> hm;
 
     //que used for bfs search
-    Deque<int[]> que;
+    Deque<GameState> que;
     /**
      * Game board constructor
      */
     public GameBoard(){
         //this.pairs = new ArrayList<>();
-        this.hashMap = new HashMap<HashKey, GameState>();
+        this.hm = new HashMap<HashKey, GameState>();
         this.firstGameState = new GameState();
+        this.que = new ArrayDeque<>();
         //this.grid = new int[36];
         //Arrays.fill(grid, -1);
         //this.vehicles = new ArrayList<>();
@@ -48,6 +49,36 @@ public class GameBoard {
      * @return ArrayList of Pairs
      */
     public ArrayList<Pair> getPlan(){
+        GameState init = firstGameState;
+        int iteration = 0;
+
+        que.add(init);
+        hm.put(init.getHashKey(), init); //Inserting in queue until all its neighbour vertices are marked.
+
+        while (! que.isEmpty()){
+            //Removing that vertex from queue,whose neighbour will be visited now
+            GameState v = que.poll();
+            iteration++;
+
+             System.out.println("Iteration: " + iteration);
+             System.out.println("Current State: " + v.getMoves());
+            System.out.println(v.toString());
+
+            if(v.isGameOver()){
+                return v.getMoves();
+            }
+
+            //processing all the neighbours of v
+            ArrayList<GameState> gameStates = v.getNextMoves();
+            for (int i=0; i<gameStates.size(); i++){
+                //is the neigbour in the hashmap
+                if (! hm.containsKey(gameStates.get(i).getHashKey())){
+                    que.add(gameStates.get(i));
+                    addToHM(gameStates.get(i));
+                }
+            }
+        }
+
         return null;
     }
 
@@ -59,29 +90,58 @@ public class GameBoard {
      * @return the number of shortest paths
      */
     public int getNumOfPaths(){
-        //TODO
-        //BFS();
-        return -1;
+        GameState init = firstGameState;
+        hm.clear();
+        int iteration = 0;
+        int numPaths=0;
+
+        que.add(init);
+        hm.put(init.getHashKey(), init); //Inserting in queue until all its neighbour vertices are marked.
+
+        while (! que.isEmpty()){
+            //Removing that vertex from queue,whose neighbour will be visited now
+            GameState v = que.poll();
+            iteration++;
+
+            System.out.println("Iteration: " + iteration);
+            System.out.println("Current State: " + v.getMoves());
+            System.out.println(v.toString());
+
+            if(v.isGameOver()){
+                numPaths++;
+            }
+
+            //processing all the neighbours of v
+            ArrayList<GameState> gameStates = v.getNextMoves();
+            for (int i=0; i<gameStates.size(); i++){
+                //is the neigbour in the hashmap
+                if (! hm.containsKey(gameStates.get(i).getHashKey())){
+                    que.add(gameStates.get(i));
+                    addToHM(gameStates.get(i));
+                }
+            }
+        }
+
+        return numPaths;
     }
 
-    //TODO
-    private void BFS(int[] startGrid) {
+    public void addToHM(GameState GS){
+        HashKey hk = GS.getHashKey();
+
+        hm.put(hk, GS);
+
     }
-
-
-
-
-
 
 
     /**
      * GameState class
      * used for having game state of grid and keeping track of vehicles
      */
-    class GameState {
+    private class GameState {
         int[] grid;
         ArrayList<Vehicle> vehicles;
-        Pair move;
+
+        ArrayList<Pair> moves;
 
         public GameState() {
             this.grid = new int[36];
@@ -89,28 +149,32 @@ public class GameBoard {
             Arrays.fill(grid, -1);
         }
 
-        public GameState(ArrayList<Vehicle> vehicles, int id, char direcMoved){
+        public GameState(ArrayList<Vehicle> vehicles, int id, char direcMoved, ArrayList<Pair> pairs){
             this.grid = new int[36];
             Arrays.fill(this.grid, -1);
             this.vehicles = new ArrayList<>();
+            this.moves = new ArrayList<>();
+            if (pairs != null)
+                this.moves.addAll(pairs);
             //add cars and adjust position of moved car
             for (Vehicle car : vehicles) {
                 Vehicle currCar = car.clone();
                 if (currCar.getId() == id){
-                    if (direcMoved == 'L'){
+                    if (direcMoved == 'w'){
                         currCar.setBegin(currCar.getBegin()-1);
                         currCar.setEnd(currCar.getEnd()-1);
-                    } else if (direcMoved == 'R') {
+                    } else if (direcMoved == 'e') {
                         currCar.setBegin(currCar.getBegin()+1);
                         currCar.setEnd(currCar.getEnd()+1);
-                    } else if (direcMoved == 'U') {
-                        currCar.setBegin(currCar.getBegin()-1);
-                        currCar.setEnd(currCar.getEnd()-1);
-                    } else if (direcMoved == 'D') {
-                        currCar.setBegin(currCar.getBegin()+1);
-                        currCar.setEnd(currCar.getEnd()+1);
+                    } else if (direcMoved == 'n') {
+                        currCar.setBegin(currCar.getBegin()-6);
+                        currCar.setEnd(currCar.getEnd()-6);
+                    } else if (direcMoved == 's') {
+                        currCar.setBegin(currCar.getBegin()+6);
+                        currCar.setEnd(currCar.getEnd()+6);
                     }
                 }
+                this.moves.add(new Pair(id, direcMoved));
                 this.vehicles.add(currCar);
             }
 
@@ -125,8 +189,8 @@ public class GameBoard {
                     }
                 }
             }
-            System.out.println("This is a new grid");
-            System.out.println(printGrid());
+//            System.out.println("This is a new grid");
+//            System.out.println(printGrid());
         }
 
         public void populateGrid(String FileName) throws FileNotFoundException {
@@ -137,7 +201,7 @@ public class GameBoard {
 
             for (int i = 0; i < numCars; i++) {
                 String line = scnr.nextLine();
-                String[] nums = line.split(" ");
+                String[] nums = line.trim().split("\\s+");
                 int begin = Integer.valueOf(nums[0]) - 1;
                 int end = Integer.parseInt(nums[nums.length - 1]) - 1;
                 Vehicle currVehicle = new Vehicle(i, begin, end);
@@ -153,34 +217,36 @@ public class GameBoard {
             }
             //testing: TODO
             System.out.println(vehicles.toString());
-            System.out.println(printGrid());
-            System.out.println(getNextMoves(grid).toString());
+            System.out.println(grid.toString());
+            System.out.println(getNextMoves().toString());
         }
 
-        private ArrayList<GameState> getNextMoves(int[] startGrid){
+        private ArrayList<GameState> getNextMoves(){
             //TODO
             ArrayList<GameState> grids = new ArrayList<>();
             //go through all vehicles to see which ones can move
             for (int i=0; i<vehicles.size(); i++){
                 Vehicle currVehicle = vehicles.get(i);
+
                 if (currVehicle.direc == 0){
                     if (currVehicle.canMoveRight() ) {
-                        if (grid[currVehicle.getEnd()] == -1) {
-                            grids.add(new GameState(this.vehicles, currVehicle.getId(), 'R'));
+                        //System.out.println();
+                        if (grid[currVehicle.getEnd()+1] == -1) {
+                            grids.add(new GameState(this.vehicles, currVehicle.getId(), 'e', this.moves));
                         }
                     } if (currVehicle.canMoveLeft()) {
-                        if (grid[(currVehicle.getBegin() - 1) - 1] == -1)
-                            grids.add(new GameState(this.vehicles, currVehicle.getId(), 'L'));
+                        if (grid[(currVehicle.getBegin() - 1)] == -1)
+                            grids.add(new GameState(this.vehicles, currVehicle.getId(), 'w', this.moves));
                     }
                 } else {
                     if (currVehicle.canMoveUp()) {
                         //TODO check logic. potential bug
-                        if (grid[(currVehicle.getBegin() - 6) - 1] == -1) {
-                            grids.add(new GameState(this.vehicles, currVehicle.getId(), 'U'));
+                        if (grid[(currVehicle.getBegin()) - 6] == -1) {
+                            grids.add(new GameState(this.vehicles, currVehicle.getId(), 'n', this.moves));
                         }
                     }  if (currVehicle.canMoveDown() ) {
-                        if (grid[(currVehicle.getEnd() + 6) - 1] == -1) {
-                            grids.add(new GameState(this.vehicles, currVehicle.getId(), 'D'));
+                        if (grid[(currVehicle.getEnd()) + 6] == -1) {
+                            grids.add(new GameState(this.vehicles, currVehicle.getId(), 's', this.moves));
                         }
                     }
                 }
@@ -189,7 +255,20 @@ public class GameBoard {
             return grids;
         }
 
-        public String printGrid(){
+        public boolean isGameOver(){
+            if (vehicles.get(0).getEnd() == 17)
+                return true;
+            return false;
+        }
+        public HashKey getHashKey(){
+            return new HashKey(this.grid);
+        }
+
+        public ArrayList<Pair> getMoves() {
+            return moves;
+        }
+
+        public String toString(){
             String printed = "";
             for (int i=0; i<36; i++){
                 printed += grid[i] != -1 ? grid[i]+", " : "_, ";
@@ -199,6 +278,8 @@ public class GameBoard {
             }
             return printed;
         }
+
+
     }
 
 
@@ -253,7 +334,7 @@ public class GameBoard {
      * pair class
      * This is actually used to represent the car that moved and the direction
      */
-    private class Pair{
+    class Pair{
         int id;
         char direction; // {’e’, ’w’, ’n’, ’s’}
         public Pair(int i, char d) { id = i; direction = d; }
@@ -338,7 +419,7 @@ public class GameBoard {
 
         public boolean canMoveRight(){
             if (this.direc == 0){
-                if (this.end%6 == 0){
+                if (this.end%6 == 5){
                     return false;
                 }
                 return true;
@@ -347,7 +428,7 @@ public class GameBoard {
         }
          public boolean canMoveLeft(){
              if (this.direc == 0){
-                 if (this.begin%6 == 1){
+                 if (this.begin%6 == 0){
                      return false;
                  }
                  return true;
@@ -356,7 +437,7 @@ public class GameBoard {
          }
          public boolean canMoveUp(){
             if (this.direc == 1){
-               if (this.begin <= 6){
+               if (this.begin <= 5){
                    return false;
                }
                return true;
@@ -365,7 +446,7 @@ public class GameBoard {
          }
          public boolean canMoveDown(){
              if (this.direc == 1){
-                 if (this.end >= 31){
+                 if (this.end >= 30){
                      return false;
                  }
                  return true;
