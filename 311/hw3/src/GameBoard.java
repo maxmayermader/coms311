@@ -26,6 +26,7 @@ public class GameBoard {
 
     //que used for bfs search
     Deque<GameState> que;
+    int numPaths;
     /**
      * Game board constructor
      */
@@ -73,6 +74,7 @@ public class GameBoard {
             for (int i=0; i<gameStates.size(); i++){
                 //is the neigbour in the hashmap
                 if (! hm.containsKey(gameStates.get(i).getHashKey())){
+                    this.numPaths++;
                     que.add(gameStates.get(i));
                     addToHM(gameStates.get(i));
                 }
@@ -90,46 +92,14 @@ public class GameBoard {
      * @return the number of shortest paths
      */
     public int getNumOfPaths(){
-        GameState init = firstGameState;
-        hm.clear();
-        int iteration = 0;
-        int numPaths=0;
-
-        que.add(init);
-        hm.put(init.getHashKey(), init); //Inserting in queue until all its neighbour vertices are marked.
-
-        while (! que.isEmpty()){
-            //Removing that vertex from queue,whose neighbour will be visited now
-            GameState v = que.poll();
-            iteration++;
-
-            System.out.println("Iteration: " + iteration);
-            System.out.println("Current State: " + v.getMoves());
-            System.out.println(v.toString());
-
-            if(v.isGameOver()){
-                numPaths++;
-            }
-
-            //processing all the neighbours of v
-            ArrayList<GameState> gameStates = v.getNextMoves();
-            for (int i=0; i<gameStates.size(); i++){
-                //is the neigbour in the hashmap
-                if (! hm.containsKey(gameStates.get(i).getHashKey())){
-                    que.add(gameStates.get(i));
-                    addToHM(gameStates.get(i));
-                }
-            }
-        }
-
-        return numPaths;
+        return this.numPaths;
     }
+
+
 
     public void addToHM(GameState GS){
         HashKey hk = GS.getHashKey();
-
         hm.put(hk, GS);
-
     }
 
 
@@ -137,7 +107,7 @@ public class GameBoard {
      * GameState class
      * used for having game state of grid and keeping track of vehicles
      */
-    private class GameState {
+     class GameState {
         int[] grid;
         ArrayList<Vehicle> vehicles;
 
@@ -174,7 +144,9 @@ public class GameBoard {
                         currCar.setEnd(currCar.getEnd()+6);
                     }
                 }
-                this.moves.add(new Pair(id, direcMoved));
+                if (currCar.getId() == id){
+                    this.moves.add(new Pair(id, direcMoved));
+                }
                 this.vehicles.add(currCar);
             }
 
@@ -216,9 +188,9 @@ public class GameBoard {
 
             }
             //testing: TODO
-            System.out.println(vehicles.toString());
-            System.out.println(grid.toString());
-            System.out.println(getNextMoves().toString());
+//            System.out.println(vehicles.toString());
+//            System.out.println(grid.toString());
+//            System.out.println(getNextMoves().toString());
         }
 
         private ArrayList<GameState> getNextMoves(){
@@ -285,8 +257,6 @@ public class GameBoard {
 
 
 
-
-
     /**
      * HashKey class.
      * Given
@@ -334,17 +304,9 @@ public class GameBoard {
      * pair class
      * This is actually used to represent the car that moved and the direction
      */
-    class Pair{
-        int id;
-        char direction; // {’e’, ’w’, ’n’, ’s’}
-        public Pair(int i, char d) { id = i; direction = d; }
-        int getDirection() { return direction; }
-        int getId() { return id; }
-        void setDirection(char d) { direction = d; }
-        void setId(int i) { id = i; }
-    }
 
-     private class Vehicle{
+
+      class Vehicle{
         final int id;
         //direction: 0 horizontal, 1 vertical
         final int direc;
@@ -459,4 +421,14 @@ public class GameBoard {
             return new Vehicle(this.id, this.begin, this.end, this.direc, this.length);
          }
     }
+
+}
+class Pair{
+    int id;
+    char direction; // {’e’, ’w’, ’n’, ’s’}
+    public Pair(int i, char d) { id = i; direction = d; }
+    int getDirection() { return direction; }
+    int getId() { return id; }
+    void setDirection(char d) { direction = d; }
+    void setId(int i) { id = i; }
 }
